@@ -1,35 +1,12 @@
-# created by virtualenv automatically
 .idea/
-.gitignore
-
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pyc
-
-
-# Virtual environment
+.vscode/
 .venv/
-env/
-venv/
-
-# Logs
+.DS_Store
+/venv/
+__pycache__/
+*.db
+*.xlsx
 *.log
-
-# Test cache
-.pytest_cache/
-.cache/
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-/__pycache__/
+*.csv
+*.env
+.env

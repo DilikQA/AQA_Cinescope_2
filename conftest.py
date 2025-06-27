@@ -1,11 +1,11 @@
-from faker import Faker
 import pytest
 import requests
+import random
 from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
 from api.api_manager import ApiManager
-
+from faker import Faker
 
 faker = Faker()
 
@@ -59,10 +59,27 @@ def session():
     yield http_session
     http_session.close()
 
-
 @pytest.fixture(scope="session")
 def api_manager(session):
     """
     Фикстура для создания экземпляра ApiManager.
     """
     return ApiManager(session)
+
+@pytest.fixture
+def pre_filtered_movie(api_manager):
+    """
+    Создаёт фильм с фиксированными значениями для фильтрации.
+    """
+    movie = {
+        "name": faker.sentence(nb_words=3).rstrip('.'),
+        "imageUrl": "https://example.com/image.png",
+        "description": faker.text(max_nb_chars=150),
+        "genreId": 4,
+        "price": 1001,
+        "location": "MSK",
+        "published": True
+    }
+    response = api_manager.movies_api.create_movie(data=movie)
+    assert response.status_code == 201 or 200
+    return response.json()

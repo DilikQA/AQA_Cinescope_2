@@ -1,5 +1,7 @@
 from api.auth_api import AuthAPI
 from api.user_api import UserAPI
+from api.movies_api import MoviesAPI
+
 
 class ApiManager:
     """
@@ -13,5 +15,21 @@ class ApiManager:
         self.session = session
         self.auth_api = AuthAPI(session)
         self.user_api = UserAPI(session)
+        self.movies_api = MoviesAPI(session)
+
+        # Авторизация
+        self.auth_api.authenticate(("api1@gmail.com", "asdqwe123Q"))
+
+
+
+
+
+
+
+
+
+
+
+
 
 

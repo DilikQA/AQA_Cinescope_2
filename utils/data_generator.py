@@ -38,3 +38,16 @@ class DataGenerator:
         random.shuffle(password)
 
         return ''.join(password)
+
+    @staticmethod
+    def generate_random_movie_data():
+        return {
+            "name": faker.sentence(nb_words=3).rstrip('.'),
+            "price": random.randint(100, 1000),
+            "description": faker.text(max_nb_chars=150),
+            "imageUrl": faker.image_url(),
+            "location": random.choice(["MSK", "SPB"]),
+            "published": random.choice([True, False]),
+            "genreId": random.randint(1, 5),
+            "rating": round(random.uniform(1.0, 10.0), 1)
+        }
