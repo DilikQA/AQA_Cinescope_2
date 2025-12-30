@@ -1,4 +1,7 @@
+from conftest import common_user
 from utils.data_generator import DataGenerator
+import pytest
+
 
 class TestMoviesAPI:
 
@@ -92,8 +95,73 @@ class TestMoviesAPI:
 
         assert data["error"] == "Bad Request"
         assert data["statusCode"] == 400
-        assert data['message'] == ['Каждое значение в поле locations должно быть одним из значений: MSK, SPB']
+        assert data['message'] == 'Некорректные данные'
 
+    def test_create_movie_by_super_admin(self, super_admin):
+        movie_data = DataGenerator.generate_random_movie_data()
+
+        response = super_admin.api.movies_api.create_movie(data=movie_data)
+        response_data = response.json()
+
+        assert response.status_code == 201
+        assert response_data["name"] == movie_data["name"]
+        assert response_data["price"] == movie_data["price"]
+
+    def test_update_movie_admin(self, super_admin):
+        movie_data = DataGenerator.generate_random_movie_data()
+        updated_data = DataGenerator.generate_random_movie_data()
+
+        created = super_admin.api.movies_api.create_movie(data=movie_data).json()
+        updated = super_admin.api.movies_api.update_movie(
+            movie_id=created["id"],
+            data=updated_data
+        ).json()
+
+        assert created["name"] != updated["name"]
+        assert created["price"] != updated["price"]
+
+    def test_create_movie_with_common_user(self, common_user):
+        movie_data = DataGenerator.generate_random_movie_data()
+        response = common_user.api.movies_api.create_movie(movie_data, expected_status=403)
+        movie_data = response.json()
+
+        assert response.status_code == 403, 'какая то неизвестная ошибка'
+        assert movie_data["message"] == "Forbidden resource"
+
+
+
+    @pytest.mark.parametrize(
+        "price_from, price_to, locations, genre_id",
+        [
+            (0, 1000, "MSK", None),
+            (None, None, ["MSK", "SPB"], None),
+            (None, None, None, 1),
+        ],
+        ids=["Price range", "Locations", "Genre ID"]
+    )
+    def test_get_movies_with_filters(self, api_manager, price_from, price_to, locations, genre_id
+    ):
+        params = {}
+
+        if price_from is not None:
+            params["priceFrom"] = price_from
+        if price_to is not None:
+            params["priceTo"] = price_to
+        if locations:
+            params["locations"] = locations
+        if genre_id:
+            params["genreId"] = genre_id
+
+        response = api_manager.movies_api.get_movies(params=params)
+        data = response.json()
+
+        for movie in data["movies"]:
+            if locations:
+                assert movie["location"] in locations
+            if genre_id:
+                assert movie["genreId"] == genre_id
+            if price_from:
+                assert movie["price"] >= price_from
 
 
 

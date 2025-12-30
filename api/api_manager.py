@@ -20,6 +20,9 @@ class ApiManager:
         # Авторизация
         self.auth_api.authenticate(("api1@gmail.com", "asdqwe123Q"))
 
+    def close_session(self):
+        self.session.close()
+
 
 
 

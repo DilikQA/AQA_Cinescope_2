@@ -4,6 +4,7 @@ class MoviesAPI(CustomRequester):
     BASE_URL = "https://api.dev-cinescope.coconutqa.ru"
 
     def __init__(self, session):
+        # self.session = session
         super().__init__(session, self.BASE_URL)
 
 
