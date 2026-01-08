@@ -1,5 +1,4 @@
 from api.api_manager import ApiManager
-from enum import Enum
 
 class User:
     def __init__(self, email: str, password: str, roles: list, api: ApiManager):

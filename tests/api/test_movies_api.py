@@ -5,6 +5,7 @@ import pytest
 
 class TestMoviesAPI:
 
+    @pytest.mark.smoke
     def test_get_movies(self, api_manager):
         """
         Получение фильмов с параметрами по умолчанию.
@@ -13,7 +14,7 @@ class TestMoviesAPI:
         data = response.json()
         assert "movies" in data
 
-
+    @pytest.mark.regression
     def test_create_movie(self, api_manager):
         """
         Тест на создание нового фильма.
@@ -26,7 +27,7 @@ class TestMoviesAPI:
         assert response_data["name"] == movie_data["name"]
         assert response_data["price"] == movie_data["price"]
 
-
+    @pytest.mark.api
     def test_update_movie(self, api_manager):
         """
         Обновление существующего фильма.
@@ -42,6 +43,7 @@ class TestMoviesAPI:
         assert created_movie ["name"] != updated_movie['name']
         assert created_movie ["price"] != updated_movie["price"]
 
+    @pytest.mark.slow
     def test_get_movie_by_id(self, api_manager):
         """
         Создаем фильм и получаем его по ID.
@@ -97,6 +99,7 @@ class TestMoviesAPI:
         assert data["statusCode"] == 400
         assert data['message'] == 'Некорректные данные'
 
+    @pytest.mark.slow
     def test_create_movie_by_super_admin(self, super_admin):
         movie_data = DataGenerator.generate_random_movie_data()
 
@@ -107,6 +110,7 @@ class TestMoviesAPI:
         assert response_data["name"] == movie_data["name"]
         assert response_data["price"] == movie_data["price"]
 
+    @pytest.mark.slow
     def test_update_movie_admin(self, super_admin):
         movie_data = DataGenerator.generate_random_movie_data()
         updated_data = DataGenerator.generate_random_movie_data()
@@ -120,6 +124,7 @@ class TestMoviesAPI:
         assert created["name"] != updated["name"]
         assert created["price"] != updated["price"]
 
+    @pytest.mark.slow
     def test_create_movie_with_common_user(self, common_user):
         movie_data = DataGenerator.generate_random_movie_data()
         response = common_user.api.movies_api.create_movie(movie_data, expected_status=403)

@@ -1,13 +1,30 @@
+# IDE
 .idea/
 .vscode/
+
+# Virtual env
 .venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
 .DS_Store
-/venv/
-pycache__/
-*.db
-*.xlsx
-*.log
-*.csv
-*.env
+
+# Env files
 .env
+
+# Logs & data
+*.log
+*.db
+*.csv
+*.xlsx
+
+# Pytest
+.pytest_cache/
+
+# Temporary tests
 tests/Empty.py

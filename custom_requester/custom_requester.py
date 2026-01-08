@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pydantic import BaseModel
 
 class CustomRequester:
     """
@@ -14,7 +15,7 @@ class CustomRequester:
     def __init__(self, session, base_url):
         self.session = session
         self.base_url = base_url
-        self.headers = self.base_headers.copy()
+        self.session.headers = self.base_headers.copy()
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
@@ -29,16 +30,30 @@ class CustomRequester:
         :param need_logging: Флаг для логирования (по умолчанию True).
         :return: Объект ответа requests.Response
         """
+        # Определяем в параметре дата - это модель pydantic или просто словарь пришел.
+        # Если это модель pydantic - то мы ее будем переводить в json
         url = f"{self.base_url}{endpoint}"
+
+        if isinstance(data, BaseModel):
+            data = json.loads(data.model_dump_json(exclude_unset=True))
+
         response = self.session.request(
-            method=method,
-            url=url,
+            method,
+            url,
             json=data,
-            params = params,
-            # headers=self.headers
-            headers=self.session.headers
-        )
+            params=params,
+            headers = self.session.headers)
         print("Request URL:", response.request.url)
+        print("Status_code:", response.status_code)
+
+        # response = self.session.request(
+        #     method=method,
+        #     url=url,
+        #     json=data,
+        #     params = params,
+        #     # headers=self.headers
+        #     headers=self.session.headers
+        # )
 
         if need_logging:
             self.log_request_and_response(response)
@@ -52,6 +67,7 @@ class CustomRequester:
             return response
 
 
+
     def _update_session_headers(self, session, **kwargs):
         """
         Обновление заголовков сессии.
@@ -63,6 +79,12 @@ class CustomRequester:
 
 
     def log_request_and_response(self, response):
+        """
+               Логгирование запросов и ответов. Настройки логгирования описаны в pytest.ini
+               Преобразует вывод в curl-like (-H хэдэеры), (-d тело)
+
+               :param response: Объект response получаемый из метода "send_request"
+               """
         try:
             request = response.request
             GREEN = '\033[32m'
@@ -75,35 +97,48 @@ class CustomRequester:
             if hasattr(request, 'body') and request.body is not None:
                 if isinstance(request.body, bytes):
                     body = request.body.decode('utf-8')
+                elif isinstance(request.body, str):
+                    body = request.body
                 body = f"-d '{body}' \n" if body != '{}' else ''
 
-            self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
+            # self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
+
             self.logger.info(
                 f"{GREEN}{full_test_name}{RESET}\n"
                 f"curl -X {request.method} '{request.url}' \\\n"
                 f"{headers} \\\n"
                 f"{body}"
             )
-
+            response_status = response.status_code
+            is_success = response.ok
             response_data = response.text
-            try:
-                response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
-            except json.JSONDecodeError:
-                pass
-
-            self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
-            if not response.ok:
-                self.logger.info(
-                    f"\tSTATUS_CODE: {RED}{response.status_code}{RESET}\n"
-                    f"\tDATA: {RED}{response_data}{RESET}"
-                )
-            else:
-                self.logger.info(
-                    f"\tSTATUS_CODE: {GREEN}{response.status_code}{RESET}\n"
-                    f"\tDATA:\n{response_data}"
-                )
-            self.logger.info(f"{'=' * 80}\n")
+            if not is_success:
+                self.logger.info(f"\tRESPONSE:"
+                                 f"\nSTATUS_CODE: {RED}{response_status}{RESET}"
+                                 f"\nDATA: {RED}{response_data}{RESET}")
         except Exception as e:
-            self.logger.error(f"\nLogging failed: {type(e)} - {e}")
+            self.logger.info(f"\nLogging went wrong: {type(e)} - {e}")
+
+
+            # response_data = response.text
+            # try:
+            #     response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
+            # except json.JSONDecodeError:
+            #     pass
+
+        #     self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
+        #     if not response.ok:
+        #         self.logger.info(
+        #             f"\tSTATUS_CODE: {RED}{response.status_code}{RESET}\n"
+        #             f"\tDATA: {RED}{response_data}{RESET}"
+        #         )
+        #     else:
+        #         self.logger.info(
+        #             f"\tSTATUS_CODE: {GREEN}{response.status_code}{RESET}\n"
+        #             f"\tDATA:\n{response_data}"
+        #         )
+        #     self.logger.info(f"{'=' * 80}\n")
+        # except Exception as e:
+        #     self.logger.error(f"\nLogging failed: {type(e)} - {e}")
 
 
