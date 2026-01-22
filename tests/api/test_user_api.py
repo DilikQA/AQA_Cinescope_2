@@ -1,4 +1,3 @@
-from constants import Roles
 from models.base_models import UserResponse
 
 class TestUser:

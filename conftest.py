@@ -2,6 +2,9 @@ import pytest
 import requests
 from constants import BASE_URL, REGISTER_ENDPOINT
 from custom_requester.custom_requester import CustomRequester
+from sqlalchemy.orm import Session
+from db_requester.db_client import get_db_session
+from db_requester.db_helpers import DBHelper
 from utils.data_generator import DataGenerator
 from api.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
@@ -9,6 +12,11 @@ from models.base_models import TestUser
 from entities import User
 from constants import Roles
 from faker import Faker
+import uuid
+import itertools
+from db_requester.db_helpers import DBMovieHelper
+import datetime
+import random
 
 faker = Faker()
 
@@ -160,5 +168,59 @@ def pre_filtered_movie(api_manager):
     response = api_manager.movies_api.create_movie(data=movie)
     assert response.status_code == 201 or 200
     return response.json()
+
+
+@pytest.fixture(scope="module")
+def db_session() -> Session:
+    """
+    Фикстура, которая создает и возвращает сессию для работы с базой данных
+    После завершения теста сессия автоматически закрывается
+    """
+    db_session = get_db_session()
+    yield db_session
+    db_session.close()
+
+
+@pytest.fixture(scope="function")
+def db_helper(db_session) -> DBHelper:
+    """
+    Фикстура для экземпляра хелпера
+    """
+    db_helper = DBHelper(db_session)
+    return db_helper
+
+@pytest.fixture(scope="function")
+def db_movie_helper(db_session) -> DBMovieHelper:
+    """
+    Фикстура для экземпляра муви хелпера
+    """
+    db_movie_helper = DBMovieHelper(db_session)
+    return db_movie_helper
+
+@pytest.fixture(scope="function")
+def created_test_user(db_helper):
+    """
+    Фикстура, которая создает тестового пользователя в БД
+    и удаляет его после завершения теста
+    """
+    user = db_helper.create_test_user(DataGenerator.generate_user_data())
+    yield user
+    # Cleanup после теста
+    if db_helper.get_user_by_id(user.id):
+        db_helper.delete_user(user)
+
+@pytest.fixture(scope="function")
+def created_test_movie(db_movie_helper):
+    movie = db_movie_helper.create_test_movie(
+        DataGenerator.generate_random_movie_data_for_db()
+    )
+    yield movie
+
+    # cleanup
+    if db_movie_helper.get_movie_by_id(movie.id):
+        db_movie_helper.delete_movie(movie)
+
+
+
 
 

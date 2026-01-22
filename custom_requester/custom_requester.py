@@ -44,16 +44,6 @@ class CustomRequester:
             params=params,
             headers = self.session.headers)
         print("Request URL:", response.request.url)
-        print("Status_code:", response.status_code)
-
-        # response = self.session.request(
-        #     method=method,
-        #     url=url,
-        #     json=data,
-        #     params = params,
-        #     # headers=self.headers
-        #     headers=self.session.headers
-        # )
 
         if need_logging:
             self.log_request_and_response(response)
@@ -120,25 +110,6 @@ class CustomRequester:
             self.logger.info(f"\nLogging went wrong: {type(e)} - {e}")
 
 
-            # response_data = response.text
-            # try:
-            #     response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
-            # except json.JSONDecodeError:
-            #     pass
 
-        #     self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
-        #     if not response.ok:
-        #         self.logger.info(
-        #             f"\tSTATUS_CODE: {RED}{response.status_code}{RESET}\n"
-        #             f"\tDATA: {RED}{response_data}{RESET}"
-        #         )
-        #     else:
-        #         self.logger.info(
-        #             f"\tSTATUS_CODE: {GREEN}{response.status_code}{RESET}\n"
-        #             f"\tDATA:\n{response_data}"
-        #         )
-        #     self.logger.info(f"{'=' * 80}\n")
-        # except Exception as e:
-        #     self.logger.error(f"\nLogging failed: {type(e)} - {e}")
 
 

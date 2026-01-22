@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator,Field
-from typing import Optional
+from typing import Optional, List
 from constants import Roles
 import datetime
 import json
@@ -60,4 +60,21 @@ class UserResponse(BaseModel):
     verified: bool
     banned: Optional[bool] = None
 
+
+class Movie(BaseModel):
+    id: int
+    name: str
+    description: str
+    genreId: int
+    imageUrl: Optional[str] = None
+    price: int
+    rating: Optional[float] = None
+    location: str
+    published: Optional[bool] = None
+    createdAt: str
+    genre: dict
+
+
+class MoviesResponse(BaseModel):
+    movies: List[Movie]
 
