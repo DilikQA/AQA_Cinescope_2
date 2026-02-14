@@ -1,4 +1,3 @@
-from conftest import common_user
 from models.base_models import MoviesResponse, Movie
 from utils.data_generator import DataGenerator
 import allure
@@ -228,7 +227,7 @@ class TestMoviesAPI:
     @allure.severity(allure.severity_level.NORMAL)
     @allure.label("AQA", "Dilovar")
     @allure.title('Тест получения существующего фильма по фильтрам по "GET" методу')
-    def test_get_movies_with_filters(self, api_manager, pre_filtered_movie):
+    def test_get_movies_with_location_filters(self, api_manager, pre_filtered_movie):
         """
         Проверка фильтрации по жанру и локации.
         """

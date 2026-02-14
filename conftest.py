@@ -12,14 +12,40 @@ from models.base_models import TestUser
 from entities import User
 from constants import Roles
 from faker import Faker
-import uuid
-import itertools
+from utils.utilities import Tools
 from db_requester.db_helpers import DBMovieHelper
-import datetime
-import random
+from page_object_models.login_page import CinescopeLoginPage
 
 faker = Faker()
 
+DEFAULT_UI_TIMEOUT = 10000
+
+@pytest.fixture(scope="session")
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=False)  # headless=True для CI/CD, headless=False для локальной разработки
+    yield browser  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    browser.close()  # Браузер закрывается после завершения всех тестов
+
+
+@pytest.fixture(scope="function")  # Контекст создается для каждого теста
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)  # Трассировка для отладки
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)  # Установка таймаута по умолчанию
+
+    yield context  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir('playwright_trace', log_name)
+    context.tracing.stop(path=trace_path)
+
+    context.close()  # Контекст закрывается после завершения теста
+
+
+@pytest.fixture(scope="function")  # Страница создается для каждого теста
+def page(context):
+    page = context.new_page()
+    yield page  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    page.close()  # Страница закрывается после завершения теста
 
 
 @pytest.fixture(scope="function")
@@ -88,7 +114,7 @@ def registered_user(requester, test_user):
         data=test_user,
         expected_status=200
     )
-    # response_data = response.json()
+
     registered_user = test_user.model_copy()
     return registered_user
 
@@ -221,6 +247,12 @@ def created_test_movie(db_movie_helper):
         db_movie_helper.delete_movie(movie)
 
 
+@pytest.fixture(scope="function")
+def logged_in_user_page(page, browser, registered_user):
+    #page = browser.new_page()
+    login_page = CinescopeLoginPage(page)
+    login_page.open()
+    login_page.login(registered_user.email, registered_user.password)
+    login_page.assert_was_redirect_to_home_page()
 
-
-
+    return page
